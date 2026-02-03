@@ -27,15 +27,6 @@ cmake --build . --config Release
 Configuration
 Edit parm.h to configure:
 
-Memory: TOTAL_MEMORY_BYTES - Total memory budget (default: 200KB)
-Cells per bucket: DEFAULT_N - Number of cells per bucket (default: 550)
-Decay coefficient: DEFAULT_ALPHA - Controls score decay rate (default: 0.015)
-Reward coefficient: DEFAULT_BETA - Controls reward function (default: 1.5)
-Query parameters:
-R - Recent window size (default: 500)
-THETA - Persistence threshold (default: 200.0)
-DELTA - Query step size (default: 100)
-Data path: DATA_FOLDER_PATH - Path to CSV files directory
 Usage
 Configure DATA_FOLDER_PATH in parm.h to point to your CSV files directory
 Ensure CSV files follow the required format (see Data Format below)
@@ -46,11 +37,7 @@ The program expects CSV files with:
 
 First column: IP address tuple (optional, not used in current implementation)
 Second column: 16-bit fingerprint (required)
-Example CSV format:
 
-IP_Tuple,Fingerprint
-192.168.1.1,12345
-10.0.0.1,67890
 Project Structure
 .
 ├── CMakeLists.txt      # CMake build configuration
