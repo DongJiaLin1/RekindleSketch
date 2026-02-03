@@ -25,7 +25,6 @@ cd build
 cmake .. -G "Visual Studio 17 2022"
 cmake --build . --config Release
 Configuration
-Edit parm.h to configure:
 
 Usage
 Configure DATA_FOLDER_PATH in parm.h to point to your CSV files directory
