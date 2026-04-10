@@ -23,16 +23,16 @@ private:
     struct Cell {
         uint16_t key;                    // Flow fingerprint (0 = empty)
         bool flag;                       // Current window active flag
-        double score;                    // Memory score (decays exponentially)
-        uint16_t decay;                 // Missing windows count (decay factor)
+        uint8_t score;                    // Memory score (decays exponentially, 8 bits)
+        uint8_t decay;                   // Missing windows count (decay factor, 8 bits)
         uint16_t last_active_window;     // Last active window ID
 
-        Cell() : key(0), flag(false), score(0.0), decay(0), last_active_window(-1) {}
+        Cell() : key(0), flag(false), score(0), decay(0), last_active_window(-1) {}
         bool is_empty() const { return key == 0; }
         void clear() {
             key = 0;
             flag = false;
-            score = 0.0;
+            score = 0;
             decay = 0;
             last_active_window = -1;
         }
@@ -91,7 +91,7 @@ private:
             for (size_t i = 0; i < cells.size(); i++) {
                 const Cell& cell = cells[i];
                 if (!cell.is_empty() && !cell.flag) {
-                    if (cell.decay > max_decay) {
+                    if (static_cast<int>(cell.decay) > max_decay) {
                         max_decay = cell.decay;
                         candidate_idx = static_cast<int>(i) + 1;
                     }
@@ -262,11 +262,12 @@ public:
      * @param current_window Current window ID (unused, kept for API consistency)
      * @return Updated memory score (capped at score_upper_bound)
      */
-    double calculate_memory_score(double prev_score, int D, int /* current_window */) const {
-        double decay_factor = std::exp(-m_alpha * (D + 1));
-        double reward = m_Q * reward_function(D);
-        double new_score = prev_score * decay_factor + reward;
-        return std::min(new_score, score_upper_bound);
+    uint8_t calculate_memory_score(uint8_t prev_score, uint8_t D, int /* current_window */) const {
+        double prev = static_cast<double>(prev_score);
+        double decay_factor = std::exp(-m_alpha * (static_cast<int>(D) + 1));
+        double reward = m_Q * reward_function(static_cast<int>(D));
+        double new_score = prev * decay_factor + reward;
+        return static_cast<uint8_t>(std::min(new_score, 255.0));
     }
 
     /**
@@ -312,7 +313,7 @@ public:
             Cell& cell = bucket.get_cell(empty_cell_idx);
             cell.key = fingerprint;
             cell.flag = true;
-            cell.score = m_Q;
+            cell.score = static_cast<uint8_t>(m_Q);
             cell.decay = 0;
             cell.last_active_window = current_window_id;
             return true;
@@ -322,7 +323,7 @@ public:
         int candidate_idx = bucket.find_replacement_candidate_index();
         if (candidate_idx > 0) {
             Cell& candidate = bucket.get_cell(candidate_idx);
-            double decayed_score = candidate.score * std::exp(-m_alpha * candidate.decay);
+            double decayed_score = static_cast<double>(candidate.score) * std::exp(-m_alpha * static_cast<double>(candidate.decay));
             // Replacement probability: P = Z / (Z + decayed_score)
             double replace_prob = m_Z / (m_Z + decayed_score);
 
@@ -330,7 +331,7 @@ public:
                 candidate.clear();
                 candidate.key = fingerprint;
                 candidate.flag = true;
-                candidate.score = m_Q;
+                candidate.score = static_cast<uint8_t>(m_Q);
                 candidate.decay = 0;
                 candidate.last_active_window = current_window_id;
                 return true;
@@ -361,7 +362,9 @@ public:
             for (int k = 1; k <= m_cells_per_bucket; k++) {
                 Cell& cell = bucket.get_cell(k);
                 if (!cell.is_empty() && !cell.flag) {
-                    cell.decay++;
+                    if (cell.decay < 255) {
+                        cell.decay++;
+                    }
                 }
                 cell.flag = false;
             }
@@ -398,7 +401,7 @@ public:
 
         if (cell_idx > 0) {
             const Cell& cell = bucket.get_cell(cell_idx);
-            double latest_score = cell.score * std::exp(-m_alpha * cell.decay);
+            double latest_score = static_cast<double>(cell.score) * std::exp(-m_alpha * static_cast<double>(cell.decay));
             return latest_score;
         }
 
@@ -434,7 +437,7 @@ public:
         if (cell_idx > 0) {
             const Cell& cell = bucket.get_cell(cell_idx);
 
-            double recent_score = cell.score * std::exp(-m_alpha * cell.decay);
+            double recent_score = static_cast<double>(cell.score) * std::exp(-m_alpha * static_cast<double>(cell.decay));
 
             double normalized_score = recent_score / score_upper_bound;
 
