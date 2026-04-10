@@ -10,16 +10,10 @@
 #include "parm.h"
 #include "MurmurHash3.h"
 
-/**
- * RekindleSketch: A memory-efficient data structure for tracking persistent flows
- * Implements a sketch-based algorithm with exponential decay and reward mechanisms
- */
+
 class RekindleSketch {
 private:
-    /**
-     * Cell: Represents a single memory cell in the sketch
-     * Stores flow fingerprint, activity flag, memory score, and decay information
-     */
+
     struct Cell {
         uint16_t key;                    // Flow fingerprint (0 = empty)
         bool flag;                       // Current window active flag
@@ -38,10 +32,7 @@ private:
         }
     };
 
-    /**
-     * Bucket: Container for multiple cells
-     * Provides cell lookup, replacement candidate selection, and management operations
-     */
+
     struct Bucket {
         int bucket_id;
         std::vector<Cell> cells;
@@ -80,10 +71,7 @@ private:
             return 0;
         }
 
-        /**
-         * Find replacement candidate: selects cell with maximum decay value
-         * among inactive cells (cells not active in current window)
-         */
+
         int find_replacement_candidate_index() const {
             int candidate_idx = 0;
             int max_decay = -1;
@@ -117,10 +105,7 @@ private:
     int current_window_id;            // Current window identifier
     int total_windows_processed;      // Total number of windows processed
     
-    /**
-     * SlidingWindowResult: Stores query results for a sliding window
-     * Contains window range and list of persistent flows found
-     */
+
     struct SlidingWindowResult {
         int start_window;
         int end_window;
@@ -191,10 +176,7 @@ public:
     }
 
 private:
-    /**
-     * Initialize sketch: set up random number generator, calculate score bounds,
-     * and allocate bucket memory
-     */
+
     void initialize() {
         std::random_device rd;
         rng = std::mt19937(rd());
@@ -215,12 +197,7 @@ private:
         return hash_value;
     }
 
-    /**
-     * Convert string to 16-bit fingerprint
-     * Tries to parse as number first, falls back to hash if parsing fails
-     * @param key Input string
-     * @return 16-bit fingerprint (never returns 0)
-     */
+
     uint16_t string_to_fingerprint(const std::string& key) const {
         try {
             unsigned long value = std::stoul(key);
@@ -233,35 +210,19 @@ private:
         }
     }
 
-    /**
-     * Compute bucket index from fingerprint using multiplicative hash
-     * @param fingerprint 16-bit flow fingerprint
-     * @return Bucket index (0-based)
-     */
+
     int get_bucket_index(uint16_t fingerprint) const {
         uint32_t hash_value = static_cast<uint32_t>(fingerprint) * 2654435761U;
         return hash_value % m_buckets;
     }
 
 public:
-    /**
-     * Reward function: G(D) = 1 + exp(-β * D)
-     * Returns higher reward for flows that reappear after shorter gaps
-     * @param D Number of missing windows
-     * @return Reward value
-     */
+
     double reward_function(int D) const {
         return 1.0 + std::exp(-m_beta * D);
     }
 
-    /**
-     * Calculate memory score: S_W = S_Ŵ * exp(-α * (D + 1)) + Q * G(D)
-     * Combines exponential decay with reward mechanism
-     * @param prev_score Previous memory score
-     * @param D Number of missing windows
-     * @param current_window Current window ID (unused, kept for API consistency)
-     * @return Updated memory score (capped at score_upper_bound)
-     */
+
     uint8_t calculate_memory_score(uint8_t prev_score, uint8_t D, int /* current_window */) const {
         double prev = static_cast<double>(prev_score);
         double decay_factor = std::exp(-m_alpha * (static_cast<int>(D) + 1));
@@ -270,11 +231,7 @@ public:
         return static_cast<uint8_t>(std::min(new_score, 255.0));
     }
 
-    /**
-     * Update sketch with a flow: convert string ID to fingerprint and update
-     * @param flow_id Flow identifier (string format)
-     * @return true if update successful, false otherwise
-     */
+
     bool update(const std::string& flow_id) {
         uint16_t fingerprint = string_to_fingerprint(flow_id);
         if (fingerprint == 0) {
@@ -283,14 +240,7 @@ public:
         return update_by_fingerprint(fingerprint);
     }
     
-    /**
-     * Update sketch by fingerprint: implements three-step update strategy
-     * 1. If flow exists and inactive: update score and activate
-     * 2. If empty cell exists: insert new flow
-     * 3. If bucket full: probabilistic replacement based on decay
-     * @param fingerprint 16-bit flow fingerprint
-     * @return true if update successful, false otherwise
-     */
+
     bool update_by_fingerprint(uint16_t fingerprint) {
         int bucket_idx = get_bucket_index(fingerprint);
         Bucket& bucket = *buckets[bucket_idx];
@@ -342,20 +292,14 @@ public:
         return false;
     }
 
-    /**
-     * Update sketch with all flows in current window
-     * @param flows Vector of flow identifiers
-     */
+
     void update_window(const std::vector<std::string>& flows) {
         for (const auto& flow : flows) {
             update(flow);
         }
     }
 
-    /**
-     * End current window: update decay counters and reset activity flags
-     * Increments decay for inactive cells and advances window counter
-     */
+
     void end_window() {
         for (int d = 1; d <= m_buckets; d++) {
             Bucket& bucket = *buckets[d-1];
@@ -373,12 +317,7 @@ public:
         total_windows_processed++;
     }
 
-    /**
-     * Query memory score: returns decayed memory score for a flow
-     * Calculates latest score considering exponential decay: S = score * exp(-α * decay)
-     * @param flow_id Flow identifier (string format)
-     * @return Latest memory score, or 0 if flow not found
-     */
+
     double query(const std::string& flow_id) {
         uint16_t fingerprint = string_to_fingerprint(flow_id);
         if (fingerprint == 0) {
@@ -388,11 +327,7 @@ public:
         return query_by_fingerprint(fingerprint);
     }
 
-    /**
-     * Query by fingerprint: internal query implementation
-     * @param fingerprint 16-bit flow fingerprint
-     * @return Decayed memory score, or 0 if flow not found
-     */
+
     double query_by_fingerprint(uint16_t fingerprint) {
         int bucket_idx = get_bucket_index(fingerprint);
         const Bucket& bucket = *buckets[bucket_idx];
@@ -408,12 +343,7 @@ public:
         return 0.0;
     }
 
-    /**
-     * Query recent persistence: estimates number of active windows in recent R windows
-     * Normalizes memory score and scales by R to estimate persistence
-     * @param flow_id Flow identifier (string format)
-     * @return Estimated number of active windows, or 0 if flow not found
-     */
+
     double query_recent_persistence(const std::string& flow_id) const {
         uint16_t fingerprint = string_to_fingerprint(flow_id);
         if (fingerprint == 0) {
@@ -423,11 +353,7 @@ public:
         return query_recent_persistence_by_fingerprint(fingerprint);
     }
     
-    /**
-     * Query recent persistence by fingerprint: internal implementation
-     * @param fingerprint 16-bit flow fingerprint
-     * @return Estimated active windows = (decayed_score / S_max) * R
-     */
+
     double query_recent_persistence_by_fingerprint(uint16_t fingerprint) const {
         int bucket_idx = get_bucket_index(fingerprint);
         const Bucket& bucket = *buckets[bucket_idx];
@@ -449,12 +375,7 @@ public:
         return 0.0;
     }
 
-    /**
-     * Find recent persistent flows: scans all cells and returns flows with
-     * persistence above threshold
-     * @param threshold Persistence threshold (default: THETA)
-     * @return Vector of persistent flow identifiers
-     */
+
     std::vector<std::string> find_recent_persistent_flows(double threshold = THETA) {
         std::vector<std::string> persistent_flows;
 
@@ -475,13 +396,7 @@ public:
         return persistent_flows;
     }
 
-    /**
-     * Sliding window query: performs periodic query every DELTA windows
-     * Queries are only performed when current_window_id >= R and at DELTA intervals
-     * Results are stored in sliding_window_queue with max size R/DELTA
-     * @param threshold Persistence threshold (default: THETA)
-     * @return true if query was performed, false otherwise
-     */
+
     bool sliding_window_query(double threshold = THETA) {
         if (current_window_id < R) {
             return false;
@@ -530,10 +445,7 @@ public:
         return score_upper_bound;
     }
 
-    /**
-     * Reset sketch: clears all cells and resets window counters
-     * Useful for reusing sketch instance with new data stream
-     */
+
     void reset() {
         current_window_id = 1;
         total_windows_processed = 0;
