@@ -15,11 +15,11 @@ class RekindleSketch {
 private:
 
     struct Cell {
-        uint16_t key;                    // Flow fingerprint (0 = empty)
-        bool flag;                       // Current window active flag
-        uint8_t score;                    // Memory score (decays exponentially, 8 bits)
-        uint8_t decay;                   // Missing windows count (decay factor, 8 bits)
-        uint16_t last_active_window;     // Last active window ID
+        uint16_t key;                    
+        bool flag;                      
+        uint8_t score;                   
+        uint8_t decay;                  
+        uint16_t last_active_window;    
 
         Cell() : key(0), flag(false), score(0), decay(0), last_active_window(-1) {}
         bool is_empty() const { return key == 0; }
