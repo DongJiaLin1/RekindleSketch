@@ -11,7 +11,7 @@
 // ===== Memory Configuration =====
 const size_t TOTAL_MEMORY_BYTES = 200 * 1024;  // Total memory budget (200KB)
 const int DEFAULT_N = 550;                      // Number of cells per bucket
-const size_t ESTIMATED_CELL_SIZE = 16;          // Estimated memory per cell (bytes)
+const size_t ESTIMATED_CELL_SIZE = 41;          // Estimated memory per cell (bytes)
 
 // Calculate number of buckets based on memory constraints
 const int CALCULATED_M = static_cast<int>(
