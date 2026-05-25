@@ -1,0 +1,3 @@
+E:/CLionProjects/RekindleSketch_1_14/cmake-build-debug/CMakeFiles/RekindleSketch.dir
+E:/CLionProjects/RekindleSketch_1_14/cmake-build-debug/CMakeFiles/edit_cache.dir
+E:/CLionProjects/RekindleSketch_1_14/cmake-build-debug/CMakeFiles/rebuild_cache.dir
