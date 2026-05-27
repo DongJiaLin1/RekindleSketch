@@ -8,7 +8,7 @@
 //==============================================================================
 
 const size_t TOTAL_MEMORY_BYTES = 200 * 1024;  // Total memory budget (200KB)
-const int DEFAULT_N = 550;                      // Number of cells per bucket
+const int DEFAULT_N = 55;                       // Number of cells per bucket
 const size_t ESTIMATED_CELL_SIZE = 41;           // Memory per cell (bytes)
 
 // Calculated number of buckets based on memory constraints
@@ -31,8 +31,8 @@ const int DEFAULT_Z = 1;            // Replacement probability parameter
 //==============================================================================
 
 const int R = 500;                   // Number of recent windows to track
-const double THETA = 200.0;          // Persistence threshold (min active windows)
-const int DELTA = 100;               // Query interval (windows between queries)
+const double DALTA = 300.0;          // Persistence threshold (min active windows)
+const int S = 100;                   // Query interval (windows between queries)
 
 //==============================================================================
 // Experiment Parameters

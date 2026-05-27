@@ -53,10 +53,10 @@ public:
     double query_persistence_by_fingerprint(uint16_t fingerprint) const;
 
     // Find all persistent flows above threshold
-    std::vector<std::string> find_persistent_flows(double threshold = THETA);
+    std::vector<std::string> find_persistent_flows(double threshold = DALTA);
 
     // Sliding window query (periodic)
-    bool sliding_window_query(double threshold = THETA);
+    bool sliding_window_query(double threshold = DALTA);
     const std::deque<struct SlidingWindowResult>& get_sliding_window_results() const;
 
     // State accessors
@@ -366,14 +366,14 @@ inline bool RekindleSketch::sliding_window_query(double threshold) {
 
     int end_window = current_window_id_ - 1;
     int start_window = end_window - R + 1;
-    int query_interval = (end_window - R) % DELTA;
+    int query_interval = (end_window - R) % S;
     if (query_interval != 0) return false;
 
     std::vector<std::string> flows = find_persistent_flows(threshold);
     sliding_window_results_.push_back(SlidingWindowResult(start_window, end_window));
     sliding_window_results_.back().persistent_flows = std::move(flows);
 
-    size_t max_size = static_cast<size_t>(R / DELTA);
+    size_t max_size = static_cast<size_t>(R / S);
     while (sliding_window_results_.size() > max_size) {
         sliding_window_results_.pop_front();
     }

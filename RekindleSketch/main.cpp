@@ -117,21 +117,21 @@ int main() {
 
         processed_files++;
         sketch.end_window();
-        sketch.sliding_window_query(THETA);
+        sketch.sliding_window_query(DALTA);
     }
 
     // Handle edge case: query at the end if needed
     if (processed_files == TOTAL_WINDOWS && TOTAL_WINDOWS > 0) {
         int current_window = sketch.get_current_window_id();
         int end_window = current_window - 1;
-        int query_interval = (end_window - R) % DELTA;
+        int query_interval = (end_window - R) % S;
 
         if (current_window > R && query_interval == 0) {
             const auto& results = sketch.get_sliding_window_results();
             bool already_queried = !results.empty() &&
                                    results.back().end_window == end_window;
             if (!already_queried) {
-                sketch.sliding_window_query(THETA);
+                sketch.sliding_window_query(DALTA);
             }
         }
     }
