@@ -1,6 +1,6 @@
 # RekindleSketch
 
-A memory-efficient sketch data structure for detecting persistent network flows in sliding windows.
+A memory-efficient sketch data structure for detecting recent persistent flows.
 
 ## Overview
 
@@ -9,9 +9,8 @@ RekindleSketch is a time-aware sketch-based data structure for detecting recent 
 ## Features
 
 - **Memory-efficient**: Configurable memory constraints with automatic bucket/cell calculation
-- **Time-aware scoring:**: Memory-score-based tracking with decay and reward mechanisms for recent persistent flows
+- **Time-aware scoring**: Memory-score-based tracking with decay and reward mechanisms for recent persistent flows
 - **Configurable parameters**: Adjustable decay coefficients, reward functions, and thresholds
-- **Fast**: Optimized data structures and inline implementations
 
 ## Requirements
 
@@ -76,9 +75,9 @@ Edit `parm.h` to configure:
 ## Algorithm
 
 RekindleSketch uses:
-- **Memory score**: Tracks flow activity with exponential decay
-- **Time-awareness**: Detects recent persistent flows over the latest R windows
-- **Probabilistic replacement**: Handles hash collisions with replacement probability
+- **Memory score**: Track flow activity with exponential decay
+- **Time-awareness**: Detect recent persistent flows over the latest R windows
+- **Probabilistic replacement**: Handle hash collisions with replacement probability
 
 ## License
 
